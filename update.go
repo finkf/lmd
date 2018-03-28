@@ -68,6 +68,7 @@ func gatherTrigrams(wg *sync.WaitGroup) {
 	defer wg.Done()
 	m := make(map[rune]*corpus.Trigrams)
 	var i int
+	var total uint64
 	for t := range trigramsChan {
 		if i >= 10 {
 			i = 0
@@ -84,10 +85,12 @@ func gatherTrigrams(wg *sync.WaitGroup) {
 			m[r].AddBigrams(str, b)
 		})
 		i++
+		total += t.Total()
 	}
 	for r, t := range m {
 		ensure(updateTrigrams(lmFileNameFromRune(r), t))
 	}
+	ensure(writeLM(total, "total.json.gz"))
 }
 
 func updateTrigrams(path string, t *corpus.Trigrams) error {

@@ -24,6 +24,7 @@ var (
 	char3grams *corpus.Char3Grams
 	host       string
 	datadir    string
+	total      uint64
 )
 
 func init() {
@@ -39,6 +40,7 @@ func execute() error {
 func doLMD(cmd *cobra.Command, args []string) {
 	char3grams = corpus.NewChar3Grams()
 	ensure(readLM(char3grams, "char3grams.json.gz"))
+	ensure(readLM(&total, "total.json.gz"))
 	http.HandleFunc("/char3grams", handleChar3Grams)
 	http.HandleFunc("/ngrams", handleNGrams)
 	log.Printf("starting server on %s", host)
@@ -113,6 +115,7 @@ func searchChar3Grams(r api.Char3GramsRequest) (api.Char3GramsResponse, error) {
 func searchNGrams(r api.NGramsRequest) (api.NGramsResponse, error) {
 	res := api.NGramsResponse{
 		NGramsRequest: r,
+		Total:         total,
 	}
 	if len(r.F) == 0 {
 		return res, nil
