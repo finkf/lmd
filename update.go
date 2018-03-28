@@ -145,6 +145,9 @@ func updateFile(i int, uri string) {
 	m := corpus.NewChar3Grams()
 	var tokens []string
 	corpus.DTAReadTokensAndClose(is, func(t corpus.Token) {
+		if t.Type() != corpus.Word {
+			return
+		}
 		l := strings.ToLower(string(t))
 		m.AddAll(l)
 		tokens = append(tokens, l)
