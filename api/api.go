@@ -22,3 +22,17 @@ type CharNGramMatch struct {
 	NGram string
 	Count uint64
 }
+
+// NGramsRequest defines the data
+// for a request for token n-grams.
+type NGramsRequest struct {
+	F, S, T string
+}
+
+// NGramsResponse defines the data
+// for the respones of a request for token n-grams.
+type NGramsResponse struct {
+	NGramsRequest
+	Total   uint64
+	Matches interface{}
+}
