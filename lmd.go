@@ -21,16 +21,18 @@ var (
 		Short: "Language Model Daemon",
 		Run:   doLMD,
 	}
-	char3grams *corpus.Char3Grams
+	char3grams *corpus.CharTrigrams
 	host       string
 	datadir    string
 	total      uint64
+	hash       int
 )
 
 func init() {
 	lmd.AddCommand(update)
 	lmd.PersistentFlags().StringVarP(&datadir, "dir", "d", "data", "set data dir")
-	lmd.Flags().StringVarP(&host, "host", "t", "localhost:8080", "set host address")
+	lmd.PersistentFlags().IntVarP(&hash, "hash", "s", 128, "set hash size")
+	lmd.Flags().StringVarP(&host, "host", "H", "localhost:8080", "set host address")
 }
 
 func execute() error {
@@ -38,24 +40,24 @@ func execute() error {
 }
 
 func doLMD(cmd *cobra.Command, args []string) {
-	char3grams = corpus.NewChar3Grams()
-	ensure(readLM(char3grams, "char3grams.json.gz"))
-	ensure(readLM(&total, "total.json.gz"))
-	http.HandleFunc("/char3grams", handleChar3Grams)
+	char3grams = new(corpus.CharTrigrams)
+	ensure(readLM(char3grams, "char3grams.gob"))
+	ensure(readLM(&total, "total.gob"))
+	http.HandleFunc("/char3grams", handleCharTrigrams)
 	http.HandleFunc("/ngrams", handleNGrams)
 	log.Printf("starting server on %s", host)
 	http.ListenAndServe(host, nil)
 }
 
-func handleChar3Grams(w http.ResponseWriter, r *http.Request) {
+func handleCharTrigrams(w http.ResponseWriter, r *http.Request) {
 	log.Printf("handling %s", r.URL)
 	var h handle
-	var q api.Char3GramsRequest
+	var q api.CharTrigramsRequest
 	h.decodeQuery(&q, r)
-	var x api.Char3GramsResponse
+	var x api.CharTrigramsResponse
 	h.exec(func() (int, error) {
 		var err error
-		x, err = searchChar3Grams(q)
+		x, err = searchCharTrigrams(q)
 		if err != nil {
 			return http.StatusBadRequest, err
 		}
@@ -91,10 +93,10 @@ func handleNGrams(w http.ResponseWriter, r *http.Request) {
 	log.Printf("handled %s: %v [%d]", r.URL, err, status)
 }
 
-func searchChar3Grams(r api.Char3GramsRequest) (api.Char3GramsResponse, error) {
-	res := api.Char3GramsResponse{
-		Char3GramsRequest: r,
-		Total:             char3grams.Total(),
+func searchCharTrigrams(r api.CharTrigramsRequest) (api.CharTrigramsResponse, error) {
+	res := api.CharTrigramsResponse{
+		CharTrigramsRequest: r,
+		Total:               char3grams.Total(),
 	}
 	if !r.Regex {
 		res.Matches = append(res.Matches, api.CharNGramMatch{NGram: r.Q, Count: char3grams.Get(r.Q)})
@@ -120,7 +122,7 @@ func searchNGrams(r api.NGramsRequest) (api.NGramsResponse, error) {
 	if len(r.F) == 0 {
 		return res, nil
 	}
-	path := lmFileNameFromRune(runeFromFirstString(r.F))
+	path := pathFromHash(hashFromString(r.F))
 	var t corpus.Trigrams
 	if readLM(&t, path) != nil {
 		return res, nil

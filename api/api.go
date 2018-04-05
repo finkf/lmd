@@ -2,17 +2,17 @@
 // requests to the language model.
 package api
 
-// Char3GramsRequest defines the data
+// CharTrigramsRequest defines the data
 // for a request for character 3-grams.
-type Char3GramsRequest struct {
+type CharTrigramsRequest struct {
 	Q     string
 	Regex bool
 }
 
-// Char3GramsResponse defines the data
+// CharTrigramsResponse defines the data
 // for the response of a request for character 3-grams.
-type Char3GramsResponse struct {
-	Char3GramsRequest
+type CharTrigramsResponse struct {
+	CharTrigramsRequest
 	Total   uint64
 	Matches []CharNGramMatch
 }
