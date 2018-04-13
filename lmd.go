@@ -43,8 +43,8 @@ func doLMD(cmd *cobra.Command, args []string) {
 	char3grams = new(corpus.CharTrigrams)
 	ensure(readLM(char3grams, "char3grams.gob"))
 	ensure(readLM(&total, "total.gob"))
-	http.HandleFunc("/char3grams", handleCharTrigrams)
-	http.HandleFunc("/ngrams", handleNGrams)
+	http.HandleFunc(api.Char3GramsURL, handleCharTrigrams)
+	http.HandleFunc(api.NGramsURL, handleNGrams)
 	log.Printf("starting server on %s", host)
 	http.ListenAndServe(host, nil)
 }

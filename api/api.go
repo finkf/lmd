@@ -36,3 +36,9 @@ type NGramsResponse struct {
 	Total   uint64
 	Matches interface{}
 }
+
+// Default paths for the different api requests.
+const (
+	Char3GramsURL = "/char3grams"
+	NGramsURL     = "/ngrams"
+)
