@@ -43,8 +43,8 @@ func doLMD(cmd *cobra.Command, args []string) {
 	char3grams = new(corpus.CharTrigrams)
 	ensure(readLM(char3grams, "char3grams.gob"))
 	ensure(readLM(&total, "total.gob"))
-	http.HandleFunc(api.Char3GramsURL, handleCharTrigrams)
-	http.HandleFunc(api.NGramsURL, handleNGrams)
+	http.HandleFunc(api.CharTrigramURL, handleCharTrigrams)
+	http.HandleFunc(api.TrigramURL, handleNGrams)
 	log.Printf("starting server on %s", host)
 	http.ListenAndServe(host, nil)
 }
@@ -52,9 +52,9 @@ func doLMD(cmd *cobra.Command, args []string) {
 func handleCharTrigrams(w http.ResponseWriter, r *http.Request) {
 	log.Printf("handling %s", r.URL)
 	var h handle
-	var q api.CharTrigramsRequest
+	var q api.CharTrigramRequest
 	h.decodeQuery(&q, r)
-	var x api.CharTrigramsResponse
+	var x api.CharTrigramResponse
 	h.exec(func() (int, error) {
 		var err error
 		x, err = searchCharTrigrams(q)
@@ -74,9 +74,9 @@ func handleCharTrigrams(w http.ResponseWriter, r *http.Request) {
 func handleNGrams(w http.ResponseWriter, r *http.Request) {
 	log.Printf("handling %s", r.URL)
 	var h handle
-	var q api.NGramsRequest
+	var q api.TrigramRequest
 	h.decodeQuery(&q, r)
-	var x api.NGramsResponse
+	var x api.TrigramResponse
 	h.exec(func() (int, error) {
 		var err error
 		x, err = searchNGrams(q)
@@ -93,13 +93,13 @@ func handleNGrams(w http.ResponseWriter, r *http.Request) {
 	log.Printf("handled %s: %v [%d]", r.URL, err, status)
 }
 
-func searchCharTrigrams(r api.CharTrigramsRequest) (api.CharTrigramsResponse, error) {
-	res := api.CharTrigramsResponse{
-		CharTrigramsRequest: r,
-		Total:               char3grams.Total(),
+func searchCharTrigrams(r api.CharTrigramRequest) (api.CharTrigramResponse, error) {
+	res := api.CharTrigramResponse{
+		CharTrigramRequest: r,
+		Total:              char3grams.Total(),
 	}
 	if !r.Regex {
-		res.Matches = append(res.Matches, api.CharNGramMatch{NGram: r.Q, Count: char3grams.Get(r.Q)})
+		res.Matches = append(res.Matches, api.CharTrigramMatch{NGram: r.Q, Count: char3grams.Get(r.Q)})
 		return res, nil
 	}
 	re, err := regexp.Compile(r.Q)
@@ -108,16 +108,16 @@ func searchCharTrigrams(r api.CharTrigramsRequest) (api.CharTrigramsResponse, er
 	}
 	char3grams.Each(func(k string, v uint64) {
 		if re.MatchString(k) {
-			res.Matches = append(res.Matches, api.CharNGramMatch{NGram: k, Count: v})
+			res.Matches = append(res.Matches, api.CharTrigramMatch{NGram: k, Count: v})
 		}
 	})
 	return res, nil
 }
 
-func searchNGrams(r api.NGramsRequest) (api.NGramsResponse, error) {
-	res := api.NGramsResponse{
-		NGramsRequest: r,
-		Total:         total,
+func searchNGrams(r api.TrigramRequest) (api.TrigramResponse, error) {
+	res := api.TrigramResponse{
+		TrigramRequest: r,
+		Total:          total,
 	}
 	if len(r.F) == 0 {
 		return res, nil
