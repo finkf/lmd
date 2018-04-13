@@ -2,43 +2,43 @@
 // requests to the language model.
 package api
 
-// CharTrigramsRequest defines the data
+// CharTrigramRequest defines the data
 // for a request for character 3-grams.
-type CharTrigramsRequest struct {
+type CharTrigramRequest struct {
 	Q     string
 	Regex bool
 }
 
-// CharTrigramsResponse defines the data
+// CharTrigramResponse defines the data
 // for the response of a request for character 3-grams.
-type CharTrigramsResponse struct {
-	CharTrigramsRequest
+type CharTrigramResponse struct {
+	CharTrigramRequest
 	Total   uint64
-	Matches []CharNGramMatch
+	Matches []CharTrigramMatch
 }
 
-// CharNGramMatch defines a (string, uint64) match pair.
-type CharNGramMatch struct {
+// CharTrigramMatch defines a (string, uint64) match pair.
+type CharTrigramMatch struct {
 	NGram string
 	Count uint64
 }
 
-// NGramsRequest defines the data
+// TrigramRequest defines the data
 // for a request for token n-grams.
-type NGramsRequest struct {
+type TrigramRequest struct {
 	F, S, T string
 }
 
-// NGramsResponse defines the data
+// TrigramResponse defines the data
 // for the respones of a request for token n-grams.
-type NGramsResponse struct {
-	NGramsRequest
+type TrigramResponse struct {
+	TrigramRequest
 	Total   uint64
 	Matches interface{}
 }
 
 // Default paths for the different api requests.
 const (
-	Char3GramsURL = "/char3grams"
-	NGramsURL     = "/ngrams"
+	CharTrigramURL = "/chartrigram"
+	TrigramURL     = "/trigram"
 )
