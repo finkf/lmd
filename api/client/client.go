@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/finkf/lmd/api"
+	"github.com/finkf/logger"
 	"github.com/finkf/qparams"
 )
 
@@ -19,6 +20,7 @@ const (
 // Client represents an api client with an
 // underlying http.Client instance.
 type Client struct {
+	log    logger.Logger
 	host   string
 	client *http.Client
 }
@@ -42,9 +44,21 @@ func WithTimeout(to time.Duration) Opt {
 	}
 }
 
+// WithLogger sets the logger for the client to use.
+// c := client.New(client.WithLogger(logger.New(...)))
+func WithLogger(l logger.Logger) Opt {
+	return func(c *Client) {
+		c.log = l
+	}
+}
+
 // New creates a new client that connects to the given host.
 func New(opts ...Opt) Client {
-	c := Client{host: DefaultHost, client: &http.Client{Timeout: DefaultTimeout}}
+	c := Client{
+		host:   DefaultHost,
+		client: &http.Client{Timeout: DefaultTimeout},
+		log:    logger.Nil(),
+	}
 	for _, opt := range opts {
 		opt(&c)
 	}
@@ -94,6 +108,7 @@ func (g *getter) get(url string, r interface{}) {
 	if g._err != nil {
 		return
 	}
+	g.client.log.Debugf("request: [GET] %s")
 	resp, err := g.client.client.Get(url)
 	if err != nil {
 		g._err = err
